@@ -1,11 +1,9 @@
 import { Box } from '@mui/material';
 import tracksFile from '../tracks.txt';
 import { useState, useEffect } from 'react';
-import { useThemeMode } from '../context/ThemeContext';
 
 function AudioPage() {
   const [tracks, setTracks] = useState([]);
-  const { mode } = useThemeMode();
 
   // Load track URLs from tracks.txt on mount
   useEffect(() => {
@@ -47,7 +45,7 @@ function AudioPage() {
     >
       {tracks.map((url, index) => (
         <Box
-          key={`${index}-${mode}`}
+          key={index}
           width="100%"
           flexShrink={0}
           sx={{ height: { xs: 166, sm: 300 } }}
