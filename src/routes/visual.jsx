@@ -9,7 +9,14 @@ function VisualPage() {
       alignItems="center"
       height="100%"
     >
-      <AnimateText text="Visual" variant="h1" color="primary" />
+      <AnimateText
+        text="Visual"
+        variant="h1"
+        color="primary"
+        sx={{
+          fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
+        }}
+      />
     </Box>
   );
 }

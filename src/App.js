@@ -5,10 +5,22 @@ import ThemeToggle from './components/ThemeToggle';
 
 function App() {
   return (
-    <Box display="flex" flexDirection="column" height="100vh" overflow="hidden">
+    <Box
+      display="flex"
+      flexDirection="column"
+      minHeight="100vh"
+      sx={{ minHeight: '-webkit-fill-available' }}
+    >
       <CssBaseline />
       <ThemeToggle />
-      <Box flex={1} display="flex" justifyContent="center" alignItems="center" overflow="hidden">
+      <Box
+        flex={1}
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        overflow="auto"
+        sx={{ minHeight: 0 }}
+      >
         <Outlet />
       </Box>
       <Footer />

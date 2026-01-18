@@ -46,11 +46,16 @@ function AudioPage() {
       }}
     >
       {tracks.map((url, index) => (
-        <Box key={`${index}-${mode}`} width="100%" flexShrink={0}>
+        <Box
+          key={`${index}-${mode}`}
+          width="100%"
+          flexShrink={0}
+          sx={{ height: { xs: 166, sm: 300 } }}
+        >
           <iframe
             title={`Track ${index + 1}`}
             width="100%"
-            height="300"
+            height="100%"
             scrolling="no"
             frameBorder="no"
             allow="autoplay"

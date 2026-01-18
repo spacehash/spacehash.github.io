@@ -9,7 +9,16 @@ function AboutPage() {
       alignItems="center"
       height="100%"
     >
-      <AnimateText text="fuck you, nosey ass" variant="h1" color="primary" />
+      <AnimateText
+        text="fuck you, nosey ass"
+        variant="h1"
+        color="primary"
+        sx={{
+          fontSize: { xs: '1.5rem', sm: '2.5rem', md: '4rem' },
+          textAlign: 'center',
+          px: 2,
+        }}
+      />
     </Box>
   );
 }

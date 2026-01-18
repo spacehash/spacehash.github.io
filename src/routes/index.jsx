@@ -9,7 +9,14 @@ function HomePage() {
       alignItems="center"
       height="100%"
     >
-      <AnimateText text="Hello World" variant="h1" color="primary" />
+      <AnimateText
+        text="Hello World"
+        variant="h1"
+        color="primary"
+        sx={{
+          fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
+        }}
+      />
     </Box>
   );
 }
