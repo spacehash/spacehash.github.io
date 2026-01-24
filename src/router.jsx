@@ -2,8 +2,7 @@ import { createRouter, createRoute, createRootRoute } from '@tanstack/react-rout
 import App from './App';
 import HomePage from './routes/index';
 import AboutPage from './routes/about';
-import AudioPage from './routes/audio';
-import VisualPage from './routes/visual';
+import RentalsPage from './routes/rentals';
 
 const rootRoute = createRootRoute({
   component: App,
@@ -27,18 +26,12 @@ const homeRoute = createRoute({
   component: HomePage,
 });
 
-const audioRoute = createRoute({
+const rentalsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/audio',
-  component: AudioPage,
+  path: '/rentals',
+  component: RentalsPage,
 });
 
-const visualRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/visual',
-  component: VisualPage,
-});
-
-const routeTree = rootRoute.addChildren([indexRoute, aboutRoute, homeRoute, audioRoute, visualRoute]);
+const routeTree = rootRoute.addChildren([indexRoute, aboutRoute, homeRoute, rentalsRoute]);
 
 export const router = createRouter({ routeTree });

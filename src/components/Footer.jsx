@@ -10,11 +10,8 @@ function Footer() {
       <Link component={RouterLink} to="/about" fontSize="small">
         about
       </Link>
-      <Link component={RouterLink} to="/audio" fontSize="small">
-        audio
-      </Link>
-      <Link component={RouterLink} to="/visual" fontSize="small">
-        visual
+      <Link component={RouterLink} to="/rentals" fontSize="small">
+        rentals
       </Link>
     </Box>
   );

@@ -10,7 +10,7 @@ function AboutPage() {
       height="100%"
     >
       <AnimateText
-        text="fuck you, nosey ass"
+        text="I'm a dude who does stuff"
         variant="h1"
         color="primary"
         sx={{
