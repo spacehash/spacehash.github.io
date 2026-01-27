@@ -14,6 +14,9 @@ import {
   CircularProgress,
   IconButton,
   Chip,
+  Dialog,
+  DialogContent,
+  DialogActions,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
@@ -25,8 +28,10 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { PickersDay } from '@mui/x-date-pickers/PickersDay';
 import dayjs from 'dayjs';
+import { PDFDocument } from 'pdf-lib';
 import equipmentCsvUrl from '../resources/equipment.csv';
 import unavailableCsvUrl from '../resources/unavailable.csv';
+import rentalPdfUrl from '../resources/RENTAL CONTRACT.pdf';
 
 const EMAIL = 'spacehashes@gmail.com';
 
@@ -40,6 +45,7 @@ function parseCSV(text) {
       description: values[1],
       maxQty: parseInt(values[2]) || 1,
       cost: parseFloat(values[3]) || 0,
+      value: parseFloat(values[4]) || 0,
     };
   });
 }
@@ -60,12 +66,19 @@ function RentalsPage() {
   const [unavailableDates, setUnavailableDates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
+  const [business, setBusiness] = useState('');
+  const [address, setAddress] = useState('');
+  const [phone, setPhone] = useState('');
+  const [contactInfo, setContactInfo] = useState('');
   const [dates, setDates] = useState([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [comments, setComments] = useState('');
   const [quantities, setQuantities] = useState({});
   const [isHolding, setIsHolding] = useState(false);
   const [holdProgress, setHoldProgress] = useState(0);
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [pdfPreviewUrls, setPdfPreviewUrls] = useState([]);
+  const [currentPdfIndex, setCurrentPdfIndex] = useState(0);
   const holdTimerRef = useRef(null);
   const holdStartRef = useRef(null);
   const preventScrollRef = useRef((e) => e.preventDefault());
@@ -110,6 +123,7 @@ function RentalsPage() {
       }
       document.body.style.overflow = '';
       document.removeEventListener('touchmove', preventScrollRef.current);
+      pdfPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
 
@@ -161,10 +175,88 @@ function RentalsPage() {
 
   const getQty = (id) => quantities[id] || 0;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const selectedItems = equipment.filter((item) => getQty(item.id) > 0);
     if (selectedItems.length === 0) return;
 
+    try {
+      // Revoke previous blob URLs
+      pdfPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+
+      const pdfTemplateBytes = await fetch(rentalPdfUrl).then((res) => res.arrayBuffer());
+      const renterDisplayName = business || name;
+      const perDayTotal = selectedItems.reduce((sum, item) => sum + getQty(item.id) * item.cost, 0);
+
+      const urls = [];
+
+      for (const date of dates) {
+        const pdfDoc = await PDFDocument.load(pdfTemplateBytes);
+        const form = pdfDoc.getForm();
+        const fieldNames = new Set(form.getFields().map((f) => f.getName()));
+
+        const setField = (fieldName, value) => {
+          if (fieldNames.has(fieldName) && value) {
+            try { form.getTextField(fieldName).setText(value); } catch {}
+          }
+        };
+
+        // Renter info
+        setField('renter_name', renterDisplayName);
+        setField('renter_print_name', name);
+        setField('renter_address', address);
+        setField('renter_phone', phone);
+        setField('renter_contact_info', contactInfo);
+
+        // Owner
+        setField('owner_print_name', 'Donovan Jenkins');
+
+        // Equipment names and values
+        selectedItems.forEach((item, idx) => {
+          const qty = getQty(item.id);
+          const label = qty > 1 ? `${item.name} x${qty}` : item.name;
+          setField(`equipment_name_${idx + 1}`, label);
+          setField(`equipment_value_${idx + 1}`, `$${item.value * qty}`);
+        });
+
+        // Contract date and lease start
+        const mm = date.format('MM');
+        const dd = date.format('DD');
+        const yyyy = date.format('YYYY');
+
+        setField('contract_month', mm);
+        setField('contract_day', dd);
+        setField('contract_year', yyyy);
+
+        setField('lease_start_month', mm);
+        setField('lease_start_day', dd);
+        setField('lease_start_year', yyyy);
+
+        // Lease end = start + 1 day
+        const endDate = date.add(1, 'day');
+        setField('lease_end_month', endDate.format('MM'));
+        setField('lease_end_day', endDate.format('DD'));
+        setField('lease_end_year', endDate.format('YYYY'));
+
+        // Payment total
+        setField('payment_amount', String(perDayTotal));
+
+        const filledBytes = await pdfDoc.save();
+        const blob = new Blob([filledBytes], { type: 'application/pdf' });
+        urls.push(URL.createObjectURL(blob));
+      }
+
+      setPdfPreviewUrls(urls);
+      setCurrentPdfIndex(0);
+      setPdfModalOpen(true);
+    } catch (err) {
+      console.error('Failed to generate PDF preview:', err);
+    }
+  };
+
+  const handleConfirm = () => {
+    setPdfModalOpen(false);
+
+    const selectedItems = equipment.filter((item) => getQty(item.id) > 0);
     const itemList = selectedItems
       .map((item) => `${item.name} x${getQty(item.id)} @ $${item.cost}/day`)
       .join('\n');
@@ -178,9 +270,17 @@ function RentalsPage() {
     window.location.href = `mailto:${EMAIL}?subject=${subject}&body=${body}`;
   };
 
+  const handleCloseModal = () => {
+    setPdfModalOpen(false);
+  };
+
+  const handlePdfNav = (index) => {
+    setCurrentPdfIndex(index);
+  };
+
   const hasSelections = equipment.some((item) => getQty(item.id) > 0);
   const hasDates = dates.length > 0;
-  const isFormValid = hasSelections && name.trim() && hasDates;
+  const isFormValid = hasSelections && name.trim() && address.trim() && phone.trim() && hasDates;
 
   const getLineTotal = (item) => {
     const qty = getQty(item.id);
@@ -246,13 +346,45 @@ function RentalsPage() {
         </Typography>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              label="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              fullWidth
+              size={isMobile ? 'small' : 'medium'}
+            />
+            <TextField
+              label="Business (optional)"
+              value={business}
+              onChange={(e) => setBusiness(e.target.value)}
+              fullWidth
+              size={isMobile ? 'small' : 'medium'}
+            />
+          </Box>
           <TextField
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            label="Mailing Address"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
             fullWidth
             size={isMobile ? 'small' : 'medium'}
           />
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              label="Phone Number"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              fullWidth
+              size={isMobile ? 'small' : 'medium'}
+            />
+            <TextField
+              label="Additional Contact Info (optional)"
+              value={contactInfo}
+              onChange={(e) => setContactInfo(e.target.value)}
+              fullWidth
+              size={isMobile ? 'small' : 'medium'}
+            />
+          </Box>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.25, flexShrink: 0, minWidth: { xs: 95, sm: 'auto' } }}>
               <DatePicker
@@ -491,6 +623,50 @@ function RentalsPage() {
             Submit Request
           </Button>
         </Box>
+
+        {/* PDF Preview Modal */}
+        <Dialog
+          open={pdfModalOpen}
+          onClose={handleCloseModal}
+          maxWidth="md"
+          fullWidth
+          fullScreen={isMobile}
+        >
+          <DialogContent sx={{ p: 0, display: 'flex', flexDirection: 'column', height: isMobile ? '100%' : '80vh' }}>
+            {pdfPreviewUrls[currentPdfIndex] && (
+              <iframe
+                src={pdfPreviewUrls[currentPdfIndex]}
+                title={`Rental Contract Preview - ${currentPdfIndex + 1}`}
+                style={{ width: '100%', flex: 1, border: 'none' }}
+              />
+            )}
+          </DialogContent>
+          <DialogActions sx={{ flexDirection: 'column', p: 2, gap: 1 }}>
+            {pdfPreviewUrls.length > 1 && (
+              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+                {pdfPreviewUrls.map((_, idx) => (
+                  <Button
+                    key={idx}
+                    variant={idx === currentPdfIndex ? 'contained' : 'outlined'}
+                    size="small"
+                    onClick={() => handlePdfNav(idx)}
+                    sx={{ minWidth: 36 }}
+                  >
+                    {idx + 1}
+                  </Button>
+                ))}
+              </Box>
+            )}
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button variant="outlined" onClick={handleCloseModal}>
+                Back
+              </Button>
+              <Button variant="contained" onClick={handleConfirm}>
+                Confirm
+              </Button>
+            </Box>
+          </DialogActions>
+        </Dialog>
       </Box>
     </LocalizationProvider>
   );

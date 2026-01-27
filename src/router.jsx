@@ -3,6 +3,7 @@ import App from './App';
 import HomePage from './routes/index';
 import AboutPage from './routes/about';
 import RentalsPage from './routes/rentals';
+import ContractPage from './routes/contract';
 
 const rootRoute = createRootRoute({
   component: App,
@@ -32,6 +33,12 @@ const rentalsRoute = createRoute({
   component: RentalsPage,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, aboutRoute, homeRoute, rentalsRoute]);
+const contractRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/contract',
+  component: ContractPage,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute, aboutRoute, homeRoute, rentalsRoute, contractRoute]);
 
 export const router = createRouter({ routeTree });
