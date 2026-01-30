@@ -142,39 +142,43 @@ function RentalsPage() {
 
   return (
     <Box sx={{
-      p: { xs: 1.5, sm: 3 },
+      p: { xs: 1.5, sm: 2 },
       maxWidth: 900,
       mx: 'auto',
       width: '100%',
+      height: '100%',
       boxSizing: 'border-box',
-      overflowX: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
     }}>
       <Typography
         variant="h4"
         sx={{
-          mb: 2,
+          mb: 1,
           textAlign: 'center',
-          fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2.5rem' },
+          fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' },
+          flexShrink: 0,
         }}
       >
         Equipment Rentals
       </Typography>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
-        <Box sx={{ display: 'flex', gap: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1, flexShrink: 0 }}>
+        <Box sx={{ display: 'flex', gap: 1 }}>
           <TextField
             label="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             fullWidth
-            size={isMobile ? 'small' : 'medium'}
+            size="small"
           />
           <TextField
             label="Business (optional)"
             value={business}
             onChange={(e) => setBusiness(e.target.value)}
             fullWidth
-            size={isMobile ? 'small' : 'medium'}
+            size="small"
           />
         </Box>
         <TextField
@@ -182,22 +186,22 @@ function RentalsPage() {
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           fullWidth
-          size={isMobile ? 'small' : 'medium'}
+          size="small"
         />
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1 }}>
           <TextField
             label="Phone Number"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             fullWidth
-            size={isMobile ? 'small' : 'medium'}
+            size="small"
           />
           <TextField
             label="Additional Contact Info (optional)"
             value={contactInfo}
             onChange={(e) => setContactInfo(e.target.value)}
             fullWidth
-            size={isMobile ? 'small' : 'medium'}
+            size="small"
           />
         </Box>
         <DatePickerWithHold
@@ -210,34 +214,38 @@ function RentalsPage() {
         />
       </Box>
 
-      <EquipmentTable
-        equipment={equipment}
-        quantities={quantities}
-        onQuantityChange={handleQuantityChange}
-        isMobile={isMobile}
-      />
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', mb: 1 }}>
+        <EquipmentTable
+          equipment={equipment}
+          quantities={quantities}
+          onQuantityChange={handleQuantityChange}
+          isMobile={isMobile}
+        />
+      </Box>
 
-      <TextField
-        label="Comments"
-        value={comments}
-        onChange={(e) => setComments(e.target.value)}
-        multiline
-        rows={isMobile ? 2 : 3}
-        fullWidth
-        size={isMobile ? 'small' : 'medium'}
-        sx={{ mb: 2 }}
-      />
+      <Box sx={{ flexShrink: 0 }}>
+        <TextField
+          label="Comments"
+          value={comments}
+          onChange={(e) => setComments(e.target.value)}
+          multiline
+          rows={2}
+          fullWidth
+          size="small"
+          sx={{ mb: 1 }}
+        />
 
-      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-        <Button
-          variant="contained"
-          size={isMobile ? 'medium' : 'large'}
-          disabled={!isFormValid}
-          onClick={handleSubmit}
-          fullWidth={isMobile}
-        >
-          Submit Request
-        </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Button
+            variant="contained"
+            size={isMobile ? 'medium' : 'large'}
+            disabled={!isFormValid}
+            onClick={handleSubmit}
+            fullWidth={isMobile}
+          >
+            Submit Request
+          </Button>
+        </Box>
       </Box>
 
       <ContractPreviewModal

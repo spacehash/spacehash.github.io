@@ -25,7 +25,7 @@ function EquipmentTable({ equipment, quantities, onQuantityChange, isMobile }) {
   const totalPrice = equipment.reduce((sum, item) => sum + getQty(item.id) * item.cost, 0);
 
   return (
-    <TableContainer component={Paper} sx={{ mb: 2, overflowX: 'auto' }}>
+    <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
       <Table size={isMobile ? 'small' : 'medium'} sx={{ minWidth: isMobile ? 300 : 'auto' }}>
         <TableHead>
           <TableRow>
