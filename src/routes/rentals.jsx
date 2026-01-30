@@ -6,6 +6,7 @@ import { fillContractPdf } from '../utils/fillContractPdf';
 import DatePickerWithHold from '../components/DatePickerWithHold';
 import EquipmentTable from '../components/EquipmentTable';
 import ContractPreviewModal from '../components/ContractPreviewModal';
+import EmailPromptModal from '../components/EmailPromptModal';
 import equipmentCsvUrl from '../resources/equipment.csv';
 import unavailableCsvUrl from '../resources/unavailable.csv';
 
@@ -29,6 +30,7 @@ function RentalsPage() {
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const [pdfUrls, setPdfUrls] = useState([]);
   const [currentPdfIndex, setCurrentPdfIndex] = useState(0);
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -93,8 +95,22 @@ function RentalsPage() {
     }
   };
 
-  const handleConfirm = () => {
+  const handleDownload = () => {
+    // Download all PDFs
+    const safeName = name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-');
+    pdfUrls.forEach((url, idx) => {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `contract-${safeName}-${dates[idx].format('YYYY-MM-DD')}.pdf`;
+      link.click();
+    });
+
     setPdfModalOpen(false);
+    setEmailModalOpen(true);
+  };
+
+  const handleEmail = () => {
+    setEmailModalOpen(false);
 
     const selectedItems = equipment.filter((item) => getQty(item.id) > 0);
     const itemList = selectedItems
@@ -225,10 +241,18 @@ function RentalsPage() {
       <ContractPreviewModal
         open={pdfModalOpen}
         onClose={() => setPdfModalOpen(false)}
-        onConfirm={handleConfirm}
+        onDownload={handleDownload}
         pdfUrls={pdfUrls}
         currentIndex={currentPdfIndex}
         onNavigate={setCurrentPdfIndex}
+        isMobile={isMobile}
+      />
+
+      <EmailPromptModal
+        open={emailModalOpen}
+        onClose={() => setEmailModalOpen(false)}
+        onEmail={handleEmail}
+        email={EMAIL}
         isMobile={isMobile}
       />
     </Box>

@@ -34,7 +34,7 @@ export async function fillContractPdf({ dates, selectedItems, getQty, name, busi
     // Equipment names and values
     selectedItems.forEach((item, idx) => {
       const qty = getQty(item.id);
-      const label = qty > 1 ? `${item.name} x${qty}` : item.name;
+      const label = qty > 1 ? `(${qty}) ${item.name}` : item.name;
       setField(`equipment_name_${idx + 1}`, label);
       setField(`equipment_value_${idx + 1}`, `$${item.value * qty}`);
     });

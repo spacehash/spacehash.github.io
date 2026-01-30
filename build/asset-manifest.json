@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.js": "/static/js/main.0b33412c.js",
+    "main.js": "/static/js/main.0ffa84be.js",
     "static/media/RENTAL CONTRACT.pdf": "/static/media/RENTAL CONTRACT.94c59d6d5515798b7e52.pdf",
     "index.html": "/index.html",
     "static/media/equipment.csv": "/static/media/equipment.e33c0a55f2d64a5e3e24.csv",
     "static/media/unavailable.csv": "/static/media/unavailable.0637818068356bddd367.csv",
-    "main.0b33412c.js.map": "/static/js/main.0b33412c.js.map"
+    "main.0ffa84be.js.map": "/static/js/main.0ffa84be.js.map"
   },
   "entrypoints": [
-    "static/js/main.0b33412c.js"
+    "static/js/main.0ffa84be.js"
   ]
 }

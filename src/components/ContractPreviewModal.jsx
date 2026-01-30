@@ -1,6 +1,6 @@
 import { Box, Button, Dialog, DialogContent, DialogActions } from '@mui/material';
 
-function ContractPreviewModal({ open, onClose, onConfirm, pdfUrls, currentIndex, onNavigate, isMobile }) {
+function ContractPreviewModal({ open, onClose, onDownload, pdfUrls, currentIndex, onNavigate, isMobile }) {
   const currentUrl = pdfUrls[currentIndex];
 
   return (
@@ -34,8 +34,8 @@ function ContractPreviewModal({ open, onClose, onConfirm, pdfUrls, currentIndex,
           <Button variant="outlined" onClick={onClose}>
             Back
           </Button>
-          <Button variant="contained" onClick={onConfirm}>
-            Confirm
+          <Button variant="contained" onClick={onDownload}>
+            Download
           </Button>
         </Box>
       </DialogActions>
