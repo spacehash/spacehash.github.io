@@ -96,13 +96,15 @@ function RentalsPage() {
   };
 
   const handleDownload = () => {
-    // Download all PDFs
+    // Download all PDFs with delay to prevent browser blocking
     const safeName = name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-');
     pdfUrls.forEach((url, idx) => {
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `contract-${safeName}-${dates[idx].format('YYYY-MM-DD')}.pdf`;
-      link.click();
+      setTimeout(() => {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `contract-${safeName}-${dates[idx].format('YYYY-MM-DD')}.pdf`;
+        link.click();
+      }, idx * 300);
     });
 
     setPdfModalOpen(false);
