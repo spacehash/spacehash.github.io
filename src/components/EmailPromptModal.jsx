@@ -8,7 +8,7 @@ function EmailPromptModal({ open, onClose, onEmail, email, isMobile }) {
           Almost done!
         </Typography>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          Please attach the downloaded contract PDF(s) to your email.
+          Please sign and attach the downloaded contract PDF(s) to your email.
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Send to: <strong>{email}</strong>
