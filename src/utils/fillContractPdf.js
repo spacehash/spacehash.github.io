@@ -1,13 +1,14 @@
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import rentalPdfUrl from '../resources/RENTAL CONTRACT.pdf';
 
-export async function fillContractPdf({ dates, selectedItems, getQty, name, business, address, phone, contactInfo, perDayTotal }) {
+// dateEntries: [{ date, selectedItems, getQty, perDayTotal }, ...]
+export async function fillContractPdf({ dateEntries, name, business, address, phone, contactInfo }) {
   const pdfTemplateBytes = await fetch(rentalPdfUrl).then((res) => res.arrayBuffer());
   const renterDisplayName = business || name;
 
   const urls = [];
 
-  for (const date of dates) {
+  for (const { date, selectedItems, getQty, perDayTotal } of dateEntries) {
     const pdfDoc = await PDFDocument.load(pdfTemplateBytes);
     const form = pdfDoc.getForm();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);

@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Box, TextField, Button, Typography, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
-import { parseCSV, parseUnavailableCSV } from '../utils/csv';
+import { parseCSV, parseUnavailableCSV, parseReservationsCSV } from '../utils/csv';
 import { fillContractPdf } from '../utils/fillContractPdf';
-import DatePickerWithHold from '../components/DatePickerWithHold';
-import EquipmentTable from '../components/EquipmentTable';
+import RentalCalendar from '../components/RentalCalendar';
 import ContractPreviewModal from '../components/ContractPreviewModal';
 import EmailPromptModal from '../components/EmailPromptModal';
 import equipmentCsvUrl from '../resources/equipment.csv';
 import unavailableCsvUrl from '../resources/unavailable.csv';
+import reservationsCsvUrl from '../resources/reservations.csv';
 
 const EMAIL = 'spacehashes@gmail.com';
 
@@ -18,17 +18,18 @@ function RentalsPage() {
 
   const [equipment, setEquipment] = useState([]);
   const [unavailableDates, setUnavailableDates] = useState([]);
+  const [reservations, setReservations] = useState({});
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [business, setBusiness] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [contactInfo, setContactInfo] = useState('');
-  const [dates, setDates] = useState([]);
+  const [dateSelections, setDateSelections] = useState({});
   const [comments, setComments] = useState('');
-  const [quantities, setQuantities] = useState({});
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const [pdfUrls, setPdfUrls] = useState([]);
+  const [pdfDates, setPdfDates] = useState([]);
   const [currentPdfIndex, setCurrentPdfIndex] = useState(0);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
 
@@ -36,10 +37,12 @@ function RentalsPage() {
     Promise.all([
       fetch(equipmentCsvUrl).then((res) => res.text()),
       fetch(unavailableCsvUrl).then((res) => res.text()),
+      fetch(reservationsCsvUrl).then((res) => res.text()),
     ])
-      .then(([equipmentText, unavailableText]) => {
+      .then(([equipmentText, unavailableText, reservationsText]) => {
         setEquipment(parseCSV(equipmentText));
         setUnavailableDates(parseUnavailableCSV(unavailableText));
+        setReservations(parseReservationsCSV(reservationsText));
         setLoading(false);
       })
       .catch((err) => {
@@ -59,78 +62,75 @@ function RentalsPage() {
     });
   };
 
-  const handleAddDate = (newDate) => {
-    if (newDate && !isDateUnavailable(newDate) && !dates.some((d) => d.isSame(newDate, 'day'))) {
-      setDates((prev) => [...prev, newDate].sort((a, b) => a.unix() - b.unix()));
+  const handleSaveDateSelection = (dateStr, quantities) => {
+    const hasAny = Object.values(quantities).some((qty) => qty > 0);
+    if (hasAny) {
+      setDateSelections((prev) => ({ ...prev, [dateStr]: quantities }));
+    } else {
+      setDateSelections((prev) => {
+        const next = { ...prev };
+        delete next[dateStr];
+        return next;
+      });
     }
   };
 
-  const handleRemoveDate = (index) => {
-    setDates((prev) => prev.filter((_, i) => i !== index));
+  const downloadPdfs = (urls, dates) => {
+    const safeName = name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    urls.forEach((url, idx) => {
+      setTimeout(() => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${safeName}-${dates[idx]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }, idx * 300);
+    });
   };
-
-  const handleQuantityChange = (id, quantity, maxQty) => {
-    const qty = Math.min(maxQty, Math.max(0, parseInt(quantity) || 0));
-    setQuantities((prev) => ({ ...prev, [id]: qty }));
-  };
-
-  const getQty = (id) => quantities[id] || 0;
 
   const handleSubmit = async () => {
-    const selectedItems = equipment.filter((item) => getQty(item.id) > 0);
-    if (selectedItems.length === 0) return;
+    const entries = Object.entries(dateSelections);
+    if (entries.length === 0) return;
 
     try {
-      const perDayTotal = selectedItems.reduce((sum, item) => sum + getQty(item.id) * item.cost, 0);
+      const sortedEntries = entries.sort(([a], [b]) => a.localeCompare(b));
+      const dateEntries = sortedEntries.map(([dateStr, qtys]) => {
+        const date = dayjs(dateStr);
+        const selectedItems = equipment.filter((e) => (qtys[e.id] || 0) > 0);
+        const getQty = (id) => qtys[id] || 0;
+        const perDayTotal = selectedItems.reduce((sum, item) => sum + getQty(item.id) * item.cost, 0);
+        return { date, selectedItems, getQty, perDayTotal };
+      });
+      const sortedDateStrs = sortedEntries.map(([dateStr]) => dateStr);
 
       const urls = await fillContractPdf({
-        dates, selectedItems, getQty, name, business, address, phone, contactInfo, perDayTotal,
+        dateEntries, name, business, address, phone, contactInfo,
       });
 
       setPdfUrls(urls);
-      setCurrentPdfIndex(0);
-      setPdfModalOpen(true);
+      setPdfDates(sortedDateStrs);
+
+      if (isMobile) {
+        downloadPdfs(urls, sortedDateStrs);
+        setEmailModalOpen(true);
+      } else {
+        setCurrentPdfIndex(0);
+        setPdfModalOpen(true);
+      }
     } catch (err) {
       console.error('Failed to generate PDF preview:', err);
     }
   };
 
   const handleDownload = () => {
-    // Download all PDFs with delay to prevent browser blocking
-    const safeName = name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-');
-    pdfUrls.forEach((url, idx) => {
-      setTimeout(() => {
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `contract-${safeName}-${dates[idx].format('YYYY-MM-DD')}.pdf`;
-        link.click();
-      }, idx * 300);
-    });
-
+    downloadPdfs(pdfUrls, pdfDates);
     setPdfModalOpen(false);
     setEmailModalOpen(true);
   };
 
-  const handleEmail = () => {
-    setEmailModalOpen(false);
-
-    const selectedItems = equipment.filter((item) => getQty(item.id) > 0);
-    const itemList = selectedItems
-      .map((item) => `${item.name} x${getQty(item.id)} @ $${item.cost}/day`)
-      .join('\n');
-
-    const formattedDates = dates.map((d) => d.format('YYYY-MM-DD')).join(', ');
-    const subject = encodeURIComponent('RENTAL REQUEST');
-    const total = selectedItems.reduce((sum, item) => sum + getQty(item.id) * item.cost, 0) * dates.length;
-    const body = encodeURIComponent(
-      `Name: ${name}\nDate(s): ${formattedDates}\n\nEquipment:\n${itemList}\n\nTotal: $${total} (${dates.length} day${dates.length > 1 ? 's' : ''})${comments ? `\n\nComments:\n${comments}` : ''}`
-    );
-    window.location.href = `mailto:${EMAIL}?subject=${subject}&body=${body}`;
-  };
-
-  const hasSelections = equipment.some((item) => getQty(item.id) > 0);
-  const hasDates = dates.length > 0;
-  const isFormValid = hasSelections && name.trim() && address.trim() && phone.trim() && hasDates;
+  const isFormValid =
+    Object.keys(dateSelections).length > 0 && name.trim() && address.trim() && phone.trim();
 
   if (loading) {
     return (
@@ -204,22 +204,15 @@ function RentalsPage() {
             size="small"
           />
         </Box>
-        <DatePickerWithHold
-          dates={dates}
-          onAddDate={handleAddDate}
-          onRemoveDate={handleRemoveDate}
-          onClearDates={() => setDates([])}
-          isDateUnavailable={isDateUnavailable}
-          isMobile={isMobile}
-        />
       </Box>
 
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', mb: 1 }}>
-        <EquipmentTable
+        <RentalCalendar
           equipment={equipment}
-          quantities={quantities}
-          onQuantityChange={handleQuantityChange}
-          isMobile={isMobile}
+          dateSelections={dateSelections}
+          reservations={reservations}
+          isDateUnavailable={isDateUnavailable}
+          onSaveDateSelection={handleSaveDateSelection}
         />
       </Box>
 
@@ -261,9 +254,7 @@ function RentalsPage() {
       <EmailPromptModal
         open={emailModalOpen}
         onClose={() => setEmailModalOpen(false)}
-        onEmail={handleEmail}
         email={EMAIL}
-        isMobile={isMobile}
       />
     </Box>
   );
