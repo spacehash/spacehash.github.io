@@ -24,7 +24,7 @@ function DateGearModal({ open, date, equipment, reservations, initialQuantities,
     if (open) {
       setQuantities(initialQuantities || {});
     }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open]); // eslint-disable-line
 
   if (!date) return null;
 
