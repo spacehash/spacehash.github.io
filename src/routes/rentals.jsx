@@ -4,7 +4,6 @@ import dayjs from 'dayjs';
 import { parseCSV, parseUnavailableCSV, parseReservationsCSV } from '../utils/csv';
 import { fillContractPdf } from '../utils/fillContractPdf';
 import RentalCalendar from '../components/RentalCalendar';
-import ContractPreviewModal from '../components/ContractPreviewModal';
 import EmailPromptModal from '../components/EmailPromptModal';
 import equipmentCsvUrl from '../resources/equipment.csv';
 import unavailableCsvUrl from '../resources/unavailable.csv';
@@ -27,10 +26,8 @@ function RentalsPage() {
   const [contactInfo, setContactInfo] = useState('');
   const [dateSelections, setDateSelections] = useState({});
   const [comments, setComments] = useState('');
-  const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const [pdfUrls, setPdfUrls] = useState([]);
   const [pdfDates, setPdfDates] = useState([]);
-  const [currentPdfIndex, setCurrentPdfIndex] = useState(0);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
 
   useEffect(() => {
@@ -75,20 +72,6 @@ function RentalsPage() {
     }
   };
 
-  const downloadPdfs = (urls, dates) => {
-    const safeName = name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    urls.forEach((url, idx) => {
-      setTimeout(() => {
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${safeName}-${dates[idx]}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }, idx * 300);
-    });
-  };
-
   const handleSubmit = async () => {
     const entries = Object.entries(dateSelections);
     if (entries.length === 0) return;
@@ -110,23 +93,10 @@ function RentalsPage() {
 
       setPdfUrls(urls);
       setPdfDates(sortedDateStrs);
-
-      if (isMobile) {
-        downloadPdfs(urls, sortedDateStrs);
-        setEmailModalOpen(true);
-      } else {
-        setCurrentPdfIndex(0);
-        setPdfModalOpen(true);
-      }
+      setEmailModalOpen(true);
     } catch (err) {
-      console.error('Failed to generate PDF preview:', err);
+      console.error('Failed to generate contracts:', err);
     }
-  };
-
-  const handleDownload = () => {
-    downloadPdfs(pdfUrls, pdfDates);
-    setPdfModalOpen(false);
-    setEmailModalOpen(true);
   };
 
   const isFormValid =
@@ -241,20 +211,13 @@ function RentalsPage() {
         </Box>
       </Box>
 
-      <ContractPreviewModal
-        open={pdfModalOpen}
-        onClose={() => setPdfModalOpen(false)}
-        onDownload={handleDownload}
-        pdfUrls={pdfUrls}
-        currentIndex={currentPdfIndex}
-        onNavigate={setCurrentPdfIndex}
-        isMobile={isMobile}
-      />
-
       <EmailPromptModal
         open={emailModalOpen}
         onClose={() => setEmailModalOpen(false)}
         email={EMAIL}
+        pdfUrls={pdfUrls}
+        pdfDates={pdfDates}
+        clientName={name}
       />
     </Box>
   );
