@@ -10,7 +10,7 @@ function HomePage() {
       height="100%"
     >
       <AnimateText
-        text="Hello World"
+        text="SPACE HASH"
         variant="h1"
         color="primary"
         sx={{

@@ -1,4 +1,4 @@
-import { createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
+import { createRouter, createRoute, createRootRoute, createMemoryHistory } from '@tanstack/react-router';
 import App from './App';
 import HomePage from './routes/index';
 import AboutPage from './routes/about';
@@ -34,4 +34,7 @@ const rentalsRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([indexRoute, aboutRoute, homeRoute, rentalsRoute]);
 
-export const router = createRouter({ routeTree });
+export const router = createRouter({
+  routeTree,
+  history: createMemoryHistory({ initialEntries: ['/'] }),
+});

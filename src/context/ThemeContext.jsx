@@ -24,6 +24,20 @@ export function ThemeModeProvider({ children }) {
       createTheme({
         palette: {
           mode,
+          ...(mode === 'dark' && {
+            background: {
+              default: '#000000',
+              paper: '#0a0a0a',
+            },
+            text: {
+              primary: '#00ff41',
+              secondary: 'rgba(0,255,65,0.5)',
+            },
+            primary: {
+              main: '#00ff41',
+              contrastText: '#000000',
+            },
+          }),
         },
         components: {
           MuiCssBaseline: {
