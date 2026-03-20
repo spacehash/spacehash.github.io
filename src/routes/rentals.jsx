@@ -142,7 +142,6 @@ function RentalsPage() {
               size={isMobile ? 'medium' : 'large'}
               disabled={!hasDateSelected}
               onClick={() => setStep(1)}
-              fullWidth={isMobile}
             >
               Next
             </Button>
