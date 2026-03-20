@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -16,14 +15,14 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import CRTDialog from './CRTDialog';
 
 function DateGearModal({ open, date, equipment, reservations, initialQuantities, onSave, onCancel }) {
   const [quantities, setQuantities] = useState({});
+  const dialogRef = useRef(null);
 
   useEffect(() => {
-    if (open) {
-      setQuantities(initialQuantities || {});
-    }
+    if (open) setQuantities(initialQuantities || {});
   }, [open]); // eslint-disable-line
 
   if (!date) return null;
@@ -43,10 +42,8 @@ function DateGearModal({ open, date, equipment, reservations, initialQuantities,
     setQuantities((prev) => ({ ...prev, [id]: qty }));
   };
 
-  const totalCost = equipment.reduce((sum, item) => sum + getQty(item.id) * item.cost, 0);
-
   return (
-    <Dialog open={open} onClose={onCancel} maxWidth="sm" fullWidth>
+    <CRTDialog ref={dialogRef} open={open} onClose={onCancel} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ pb: 1 }}>{date.format('dddd, MMMM D, YYYY')}</DialogTitle>
       <DialogContent sx={{ pt: 0 }}>
         <Table size="small">
@@ -124,23 +121,16 @@ function DateGearModal({ open, date, equipment, reservations, initialQuantities,
             })}
           </TableBody>
         </Table>
-        {totalCost > 0 && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1.5, pr: 0.5 }}>
-            <Typography sx={{ fontWeight: 'bold', color: 'success.main' }}>
-              Day total: ${totalCost}
-            </Typography>
-          </Box>
-        )}
       </DialogContent>
       <DialogActions sx={{ pb: 2, px: 2, gap: 1 }}>
-        <Button variant="outlined" onClick={onCancel}>
+        <Button variant="outlined" onClick={() => dialogRef.current?.close(onCancel)}>
           Cancel
         </Button>
-        <Button variant="contained" onClick={() => onSave(dateStr, quantities)}>
+        <Button variant="contained" onClick={() => dialogRef.current?.close(() => onSave(dateStr, quantities))}>
           Save
         </Button>
       </DialogActions>
-    </Dialog>
+    </CRTDialog>
   );
 }
 

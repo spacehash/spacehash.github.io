@@ -37,10 +37,15 @@ function AnimateText({ text, ...typographyProps }) {
         sx={{
           opacity: showCursor ? 1 : 0,
           ml: 0.5,
+          display: 'inline-block',
+          width: '4px',
+          height: '0.85em',
+          bgcolor: 'currentColor',
+          verticalAlign: 'middle',
+          transform: 'translateY(-5px)',
+          borderRadius: '1px',
         }}
-      >
-        |
-      </Box>
+      />
     </Typography>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { CalendarPicker } from '@mui/x-date-pickers/CalendarPicker';
@@ -60,9 +60,7 @@ function RentalCalendar({ equipment, dateSelections, reservations, isDateUnavail
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-          Click a date to select gear
-        </Typography>
+
         <CalendarPicker
           date={null}
           onChange={handleDateChange}

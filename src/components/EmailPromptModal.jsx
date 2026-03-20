@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import JSZip from 'jszip';
-import { Button, Dialog, DialogContent, DialogActions, Typography, CircularProgress } from '@mui/material';
+import { Button, DialogContent, DialogActions, Typography, CircularProgress } from '@mui/material';
+import CRTDialog from './CRTDialog';
 
 function EmailPromptModal({ open, onClose, email, pdfUrls, pdfDates, clientName }) {
   const [downloading, setDownloading] = useState(false);
+  const dialogRef = useRef(null);
 
   const handleDownload = async () => {
     if (!pdfUrls || pdfUrls.length === 0) return;
@@ -40,7 +42,7 @@ function EmailPromptModal({ open, onClose, email, pdfUrls, pdfDates, clientName 
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+    <CRTDialog ref={dialogRef} open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogContent sx={{ textAlign: 'center', pt: 4, pb: 2 }}>
         <Typography variant="body1" sx={{ mb: 2 }}>
           Download the PDF{pdfUrls && pdfUrls.length > 1 ? 's' : ''}, fill out sections 12 and 14,
@@ -51,14 +53,14 @@ function EmailPromptModal({ open, onClose, email, pdfUrls, pdfDates, clientName 
         </Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
-        <Button variant="outlined" onClick={onClose} disabled={downloading}>
+        <Button variant="outlined" onClick={() => dialogRef.current?.close(onClose)} disabled={downloading}>
           Cancel
         </Button>
         <Button variant="contained" onClick={handleDownload} disabled={downloading} startIcon={downloading ? <CircularProgress size={16} /> : null}>
           {downloading ? 'Downloading…' : 'Download'}
         </Button>
       </DialogActions>
-    </Dialog>
+    </CRTDialog>
   );
 }
 

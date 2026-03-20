@@ -29,6 +29,7 @@ function RentalsPage() {
   const [pdfUrls, setPdfUrls] = useState([]);
   const [pdfDates, setPdfDates] = useState([]);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [step, setStep] = useState(0);
 
   useEffect(() => {
     Promise.all([
@@ -99,8 +100,8 @@ function RentalsPage() {
     }
   };
 
-  const isFormValid =
-    Object.keys(dateSelections).length > 0 && name.trim() && address.trim() && phone.trim();
+  const hasDateSelected = Object.keys(dateSelections).length > 0;
+  const isFormValid = name.trim() && address.trim() && phone.trim();
 
   if (loading) {
     return (
@@ -122,94 +123,107 @@ function RentalsPage() {
       flexDirection: 'column',
       overflow: 'hidden',
     }}>
-      <Typography
-        variant="h4"
-        sx={{
-          mb: 1,
-          textAlign: 'center',
-          fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' },
-          flexShrink: 0,
-        }}
-      >
-        Equipment Rentals
-      </Typography>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1, flexShrink: 0 }}>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <TextField
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            fullWidth
-            size="small"
-          />
-          <TextField
-            label="Business (optional)"
-            value={business}
-            onChange={(e) => setBusiness(e.target.value)}
-            fullWidth
-            size="small"
-          />
-        </Box>
-        <TextField
-          label="Mailing Address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          fullWidth
-          size="small"
-        />
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <TextField
-            label="Phone Number"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            fullWidth
-            size="small"
-          />
-          <TextField
-            label="Additional Contact Info (optional)"
-            value={contactInfo}
-            onChange={(e) => setContactInfo(e.target.value)}
-            fullWidth
-            size="small"
-          />
-        </Box>
-      </Box>
+      {/* Step 1: Calendar */}
+      {step === 0 && (
+        <>
+          <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', mb: 2 }}>
+            <RentalCalendar
+              equipment={equipment}
+              dateSelections={dateSelections}
+              reservations={reservations}
+              isDateUnavailable={isDateUnavailable}
+              onSaveDateSelection={handleSaveDateSelection}
+            />
+          </Box>
+          <Box sx={{ flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+            <Button
+              variant="contained"
+              size={isMobile ? 'medium' : 'large'}
+              disabled={!hasDateSelected}
+              onClick={() => setStep(1)}
+              fullWidth={isMobile}
+            >
+              Next
+            </Button>
+          </Box>
+        </>
+      )}
 
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', mb: 1 }}>
-        <RentalCalendar
-          equipment={equipment}
-          dateSelections={dateSelections}
-          reservations={reservations}
-          isDateUnavailable={isDateUnavailable}
-          onSaveDateSelection={handleSaveDateSelection}
-        />
-      </Box>
+      {/* Step 2: Contact fields */}
+      {step === 1 && (
+        <>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 2, flexShrink: 0 }}>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField
+                label="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                fullWidth
+                size="small"
+              />
+              <TextField
+                label="Business (optional)"
+                value={business}
+                onChange={(e) => setBusiness(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Box>
+            <TextField
+              label="Mailing Address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              fullWidth
+              size="small"
+            />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField
+                label="Phone Number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                fullWidth
+                size="small"
+              />
+              <TextField
+                label="Additional Contact Info (optional)"
+                value={contactInfo}
+                onChange={(e) => setContactInfo(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Box>
+            <TextField
+              label="Comments"
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              multiline
+              rows={2}
+              fullWidth
+              size="small"
+            />
+          </Box>
 
-      <Box sx={{ flexShrink: 0 }}>
-        <TextField
-          label="Comments"
-          value={comments}
-          onChange={(e) => setComments(e.target.value)}
-          multiline
-          rows={2}
-          fullWidth
-          size="small"
-          sx={{ mb: 1 }}
-        />
-
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Button
-            variant="contained"
-            size={isMobile ? 'medium' : 'large'}
-            disabled={!isFormValid}
-            onClick={handleSubmit}
-            fullWidth={isMobile}
-          >
-            Submit Request
-          </Button>
-        </Box>
-      </Box>
+          <Box sx={{ flexShrink: 0, display: 'flex', gap: 1, justifyContent: 'center' }}>
+            <Button
+              variant="outlined"
+              size={isMobile ? 'medium' : 'large'}
+              onClick={() => setStep(0)}
+            >
+              Back
+            </Button>
+            <Button
+              variant="contained"
+              size={isMobile ? 'medium' : 'large'}
+              disabled={!isFormValid}
+              onClick={handleSubmit}
+              fullWidth={isMobile}
+            >
+              Submit Request
+            </Button>
+          </Box>
+        </>
+      )}
 
       <EmailPromptModal
         open={emailModalOpen}
