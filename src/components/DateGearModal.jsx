@@ -103,8 +103,8 @@ function DateGearModal({ open, date, equipment, reservations, initialQuantities,
   const lineTotal     = qty > 0 ? qty * activeItem.cost : null;
 
   // direction mirrors the pill's slide direction:
-  //   'next' → pill moves right (higher index) → hologram exits right, enters from left
-  //   'prev' → pill moves left  (lower  index) → hologram exits left,  enters from right
+  //   'next' → pill moves right (higher index) → hologram exits left,  enters from right
+  //   'prev' → pill moves left  (lower  index) → hologram exits right, enters from left
   const goPrev = (spin = false) => {
     setSwipeNav(spin);
     directionRef.current = 'prev';
