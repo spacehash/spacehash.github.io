@@ -6,20 +6,27 @@ import ThemeToggle from './components/ThemeToggle';
 function App() {
   return (
     <Box
-      display="flex"
-      flexDirection="column"
-      minHeight="100vh"
-      sx={{ minHeight: '-webkit-fill-available' }}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        // iOS Safari full-height fix
+        '@supports (-webkit-touch-callout: none)': {
+          minHeight: '-webkit-fill-available',
+        },
+      }}
     >
       <CssBaseline />
       <ThemeToggle />
       <Box
-        flex={1}
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        overflow="auto"
-        sx={{ minHeight: 0 }}
+        sx={{
+          flex: 1,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          overflow: 'auto',
+          minHeight: 0,
+        }}
       >
         <Outlet />
       </Box>

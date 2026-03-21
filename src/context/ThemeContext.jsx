@@ -9,15 +9,8 @@ export function useThemeMode() {
 
 export function ThemeModeProvider({ children }) {
   const [mode, setMode] = useState('dark');
-  const [visualMode, setVisualMode] = useState('dark');
 
-  const toggleMode = () => {
-    const newMode = visualMode === 'light' ? 'dark' : 'light';
-    // Update visual state immediately for the toggle animation
-    setVisualMode(newMode);
-    // Update actual theme state immediately too (no delay)
-    setMode(newMode);
-  };
+  const toggleMode = () => setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
 
   const theme = useMemo(
     () =>
@@ -53,7 +46,7 @@ export function ThemeModeProvider({ children }) {
   );
 
   return (
-    <ThemeContext.Provider value={{ mode: visualMode, toggleMode }}>
+    <ThemeContext.Provider value={{ mode, toggleMode }}>
       <ThemeProvider theme={theme}>{children}</ThemeProvider>
     </ThemeContext.Provider>
   );
