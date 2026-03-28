@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Box, TextField, Button, Typography, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
-import { parseCSV, parseUnavailableCSV, parseReservationsCSV } from '../utils/csv';
+import { parseCSV, parseReservationsCSV } from '../utils/csv';
 import { fillContractPdf } from '../utils/fillContractPdf';
 import RentalCalendar from '../components/RentalCalendar';
 import EmailPromptModal from '../components/EmailPromptModal';
 import equipmentCsvUrl from '../resources/equipment.csv';
-import unavailableCsvUrl from '../resources/unavailable.csv';
 import reservationsCsvUrl from '../resources/reservations.csv';
 
 const EMAIL = 'spacehashes@gmail.com';
@@ -16,7 +15,6 @@ function RentalsPage() {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [equipment, setEquipment] = useState([]);
-  const [unavailableDates, setUnavailableDates] = useState([]);
   const [reservations, setReservations] = useState({});
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
@@ -34,12 +32,10 @@ function RentalsPage() {
   useEffect(() => {
     Promise.all([
       fetch(equipmentCsvUrl).then((res) => res.text()),
-      fetch(unavailableCsvUrl).then((res) => res.text()),
       fetch(reservationsCsvUrl).then((res) => res.text()),
     ])
-      .then(([equipmentText, unavailableText, reservationsText]) => {
+      .then(([equipmentText, reservationsText]) => {
         setEquipment(parseCSV(equipmentText));
-        setUnavailableDates(parseUnavailableCSV(unavailableText));
         setReservations(parseReservationsCSV(reservationsText));
         setLoading(false);
       })
@@ -51,13 +47,11 @@ function RentalsPage() {
 
 
   const isDateUnavailable = (dateToCheck) => {
-    if (!dateToCheck) return false;
-    const checkDate = dayjs(dateToCheck);
-    return unavailableDates.some(({ startDate, endDate }) => {
-      const start = dayjs(startDate);
-      const end = dayjs(endDate);
-      return checkDate.isAfter(start.subtract(1, 'day')) && checkDate.isBefore(end.add(1, 'day'));
-    });
+    if (!dateToCheck || equipment.length === 0) return false;
+    const dateStr = dayjs(dateToCheck).format('YYYY-MM-DD');
+    const dayReservations = reservations[dateStr];
+    if (!dayReservations) return false;
+    return equipment.every((item) => (dayReservations[item.name] || 0) >= item.maxQty);
   };
 
   const handleSaveDateSelection = (dateStr, quantities) => {

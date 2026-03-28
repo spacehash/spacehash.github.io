@@ -13,14 +13,6 @@ export function parseCSV(text) {
   });
 }
 
-export function parseUnavailableCSV(text) {
-  const lines = text.trim().split('\n');
-  return lines.slice(1).map((line) => {
-    const [startDate, endDate] = line.split(',');
-    return { startDate, endDate };
-  });
-}
-
 // Returns { "YYYY-MM-DD": { "CDJ-3000": 2, "DJM-A9": 1 }, ... }
 export function parseReservationsCSV(text) {
   const lines = text.trim().split('\n');
