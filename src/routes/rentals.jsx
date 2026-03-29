@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Box, TextField, Button, Typography, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
+import { Box, TextField, Button, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
 import { parseCSV, parseReservationsCSV } from '../utils/csv';
-import { fillContractPdf } from '../utils/fillContractPdf';
 import RentalCalendar from '../components/RentalCalendar';
-import EmailPromptModal from '../components/EmailPromptModal';
+import ContractReviewStep from '../components/ContractReviewStep';
 import equipmentCsvUrl from '../resources/equipment.csv';
 import reservationsCsvUrl from '../resources/reservations.csv';
-
-const EMAIL = 'spacehashes@gmail.com';
 
 function RentalsPage() {
   const theme = useTheme();
@@ -24,9 +21,6 @@ function RentalsPage() {
   const [contactInfo, setContactInfo] = useState('');
   const [dateSelections, setDateSelections] = useState({});
   const [comments, setComments] = useState('');
-  const [pdfUrls, setPdfUrls] = useState([]);
-  const [pdfDates, setPdfDates] = useState([]);
-  const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [step, setStep] = useState(0);
 
   useEffect(() => {
@@ -44,7 +38,6 @@ function RentalsPage() {
         setLoading(false);
       });
   }, []);
-
 
   const isDateUnavailable = (dateToCheck) => {
     if (!dateToCheck || equipment.length === 0) return false;
@@ -64,33 +57,6 @@ function RentalsPage() {
         delete next[dateStr];
         return next;
       });
-    }
-  };
-
-  const handleSubmit = async () => {
-    const entries = Object.entries(dateSelections);
-    if (entries.length === 0) return;
-
-    try {
-      const sortedEntries = entries.sort(([a], [b]) => a.localeCompare(b));
-      const dateEntries = sortedEntries.map(([dateStr, qtys]) => {
-        const date = dayjs(dateStr);
-        const selectedItems = equipment.filter((e) => (qtys[e.id] || 0) > 0);
-        const getQty = (id) => qtys[id] || 0;
-        const perDayTotal = selectedItems.reduce((sum, item) => sum + getQty(item.id) * item.cost, 0);
-        return { date, selectedItems, getQty, perDayTotal };
-      });
-      const sortedDateStrs = sortedEntries.map(([dateStr]) => dateStr);
-
-      const urls = await fillContractPdf({
-        dateEntries, name, business, address, phone, contactInfo,
-      });
-
-      setPdfUrls(urls);
-      setPdfDates(sortedDateStrs);
-      setEmailModalOpen(true);
-    } catch (err) {
-      console.error('Failed to generate contracts:', err);
     }
   };
 
@@ -118,7 +84,7 @@ function RentalsPage() {
       overflow: 'hidden',
     }}>
 
-      {/* Step 1: Calendar */}
+      {/* Step 0: Calendar */}
       {step === 0 && (
         <>
           <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', mb: 2 }}>
@@ -143,7 +109,7 @@ function RentalsPage() {
         </>
       )}
 
-      {/* Step 2: Contact fields */}
+      {/* Step 1: Contact fields */}
       {step === 1 && (
         <>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 2, flexShrink: 0 }}>
@@ -209,23 +175,40 @@ function RentalsPage() {
               variant="contained"
               size={isMobile ? 'medium' : 'large'}
               disabled={!isFormValid}
-              onClick={handleSubmit}
+              onClick={() => setStep(2)}
               fullWidth={isMobile}
             >
-              Submit Request
+              Review Contract
             </Button>
           </Box>
         </>
       )}
 
-      <EmailPromptModal
-        open={emailModalOpen}
-        onClose={() => setEmailModalOpen(false)}
-        email={EMAIL}
-        pdfUrls={pdfUrls}
-        pdfDates={pdfDates}
-        clientName={name}
-      />
+      {/* Step 2: Contract review + Formspree submit */}
+      {step === 2 && (
+        <ContractReviewStep
+          name={name}
+          business={business}
+          address={address}
+          phone={phone}
+          contactInfo={contactInfo}
+          comments={comments}
+          dateSelections={dateSelections}
+          equipment={equipment}
+          onBack={() => setStep(1)}
+          onGoHome={() => {
+            setName('');
+            setBusiness('');
+            setAddress('');
+            setPhone('');
+            setContactInfo('');
+            setComments('');
+            setDateSelections({});
+            setStep(0);
+          }}
+        />
+      )}
+
     </Box>
   );
 }
