@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Box, TextField, Button, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
-import { parseCSV, parseReservationsCSV } from '../utils/csv';
+import { parseCSV, parseReservationsCSV, parseUnavailableCSV } from '../utils/csv';
 import RentalCalendar from '../components/RentalCalendar';
 import ContractReviewStep from '../components/ContractReviewStep';
 import equipmentCsvUrl from '../resources/equipment.csv';
 import reservationsCsvUrl from '../resources/reservations.csv';
+import unavailableCsvUrl from '../resources/unavailable.csv';
 
 function RentalsPage() {
   const theme = useTheme();
@@ -13,6 +14,7 @@ function RentalsPage() {
 
   const [equipment, setEquipment] = useState([]);
   const [reservations, setReservations] = useState({});
+  const [unavailableDates, setUnavailableDates] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [business, setBusiness] = useState('');
@@ -27,10 +29,12 @@ function RentalsPage() {
     Promise.all([
       fetch(equipmentCsvUrl).then((res) => res.text()),
       fetch(reservationsCsvUrl).then((res) => res.text()),
+      fetch(unavailableCsvUrl).then((res) => res.text()),
     ])
-      .then(([equipmentText, reservationsText]) => {
+      .then(([equipmentText, reservationsText, unavailableText]) => {
         setEquipment(parseCSV(equipmentText));
         setReservations(parseReservationsCSV(reservationsText));
+        setUnavailableDates(parseUnavailableCSV(unavailableText));
         setLoading(false);
       })
       .catch((err) => {
@@ -42,6 +46,11 @@ function RentalsPage() {
   const isDateUnavailable = (dateToCheck) => {
     if (!dateToCheck || equipment.length === 0) return false;
     const dateStr = dayjs(dateToCheck).format('YYYY-MM-DD');
+
+    // Check if date is in unavailable list
+    if (unavailableDates.has(dateStr)) return true;
+
+    // Check if all equipment is fully booked
     const dayReservations = reservations[dateStr];
     if (!dayReservations) return false;
     return equipment.every((item) => (dayReservations[item.name] || 0) >= item.maxQty);

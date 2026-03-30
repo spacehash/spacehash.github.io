@@ -26,3 +26,24 @@ export function parseReservationsCSV(text) {
   });
   return result;
 }
+
+// Returns a Set of date strings (YYYY-MM-DD) that are unavailable
+export function parseUnavailableCSV(text) {
+  const lines = text.trim().split('\n');
+  const unavailableDates = new Set();
+  lines.slice(1).forEach((line) => {
+    if (!line.trim()) return;
+    const [startDateStr, endDateStr] = line.split(',');
+    if (!startDateStr || !endDateStr) return;
+
+    // Parse dates and iterate through range
+    const startDate = new Date(startDateStr.trim());
+    const endDate = new Date(endDateStr.trim());
+
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0];
+      unavailableDates.add(dateStr);
+    }
+  });
+  return unavailableDates;
+}
