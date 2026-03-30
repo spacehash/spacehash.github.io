@@ -60,7 +60,7 @@ function Controls() {
  *   itemName — equipment name string
  *   qty      — selected quantity (0 = wire outline only, 1+ = filled, 2+ = multiple copies)
  */
-function GearHologram({ itemName, qty = 1 }) {
+function GearHologram({ itemName, qty = 1, lightMode = false }) {
   const Model    = MODEL_MAP[getModelKey(itemName)];
   const wireOnly = qty === 0;
   const count    = wireOnly ? 1 : Math.min(qty, 4);
@@ -73,7 +73,7 @@ function GearHologram({ itemName, qty = 1 }) {
         <group key={i} position={[ox, oy, oz]} scale={layout.scale}>
           {/* Y nudge applied inside scale so it stays proportional */}
           <group position={[0, -0.12, 0]}>
-            <Model wireOnly={wireOnly} />
+            <Model wireOnly={wireOnly} lightMode={lightMode} />
           </group>
         </group>
       ))}

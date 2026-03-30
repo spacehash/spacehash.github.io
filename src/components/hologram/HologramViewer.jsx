@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Box } from '@mui/material';
 import GearHologram from './GearHologram';
+import { useThemeMode } from '../../context/ThemeContext';
 
 /**
  * Props:
@@ -10,6 +11,9 @@ import GearHologram from './GearHologram';
  *   height   — number (px) or string (e.g. "100%") — defaults to 210
  */
 function HologramViewer({ itemName, qty = 1, height = 210 }) {
+  const { mode } = useThemeMode();
+  const lightMode = mode === 'light';
+
   return (
     <Box sx={{ height, width: '100%', overflow: 'hidden' }}>
       <Canvas
@@ -20,7 +24,7 @@ function HologramViewer({ itemName, qty = 1, height = 210 }) {
         frameloop="always"
       >
         <Suspense fallback={null}>
-          <GearHologram itemName={itemName} qty={qty} />
+          <GearHologram itemName={itemName} qty={qty} lightMode={lightMode} />
         </Suspense>
       </Canvas>
     </Box>
