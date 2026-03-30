@@ -1,4 +1,4 @@
-import { createContext, useState, useMemo, useContext } from 'react';
+import { createContext, useState, useMemo, useContext, useEffect } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material';
 
 const ThemeContext = createContext();
@@ -11,6 +11,12 @@ export function ThemeModeProvider({ children }) {
   const [mode, setMode] = useState('dark');
 
   const toggleMode = () => setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
+
+  // Keep iOS Safari address bar in sync with theme
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', mode === 'dark' ? '#000000' : '#ffffff');
+  }, [mode]);
 
   const theme = useMemo(
     () =>
