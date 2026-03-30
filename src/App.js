@@ -2,6 +2,7 @@ import { CssBaseline, Box } from '@mui/material';
 import { Outlet } from '@tanstack/react-router';
 import Footer from './components/Footer';
 import ThemeToggle from './components/ThemeToggle';
+import './styles/CRTEffects.css';
 
 function App() {
   return (
@@ -16,6 +17,8 @@ function App() {
         },
       }}
     >
+      <div className="crt-overlay" />
+      <div className="crt-glare" />
       <CssBaseline />
       <ThemeToggle />
       <Box
