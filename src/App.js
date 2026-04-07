@@ -10,14 +10,14 @@ function App() {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100dvh',
+        height: '100dvh',
         // Fallback for browsers that don't support dvh
-        '@supports not (min-height: 100dvh)': {
-          minHeight: '100vh',
+        '@supports not (height: 100dvh)': {
+          height: '100vh',
         },
         // iOS Safari full-height fix for older versions without dvh
-        '@supports (-webkit-touch-callout: none) and (not (min-height: 100dvh))': {
-          minHeight: '-webkit-fill-available',
+        '@supports (-webkit-touch-callout: none) and (not (height: 100dvh))': {
+          height: '-webkit-fill-available',
         },
       }}
     >
