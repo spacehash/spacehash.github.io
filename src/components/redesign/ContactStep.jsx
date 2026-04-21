@@ -20,19 +20,19 @@ export default function ContactStep({ form, setForm, onBack, onNext }) {
       <div className="form-grid">
         <div className="field">
           <label>NAME <span className="req">*</span></label>
-          <input value={form.name} onChange={update('name')} placeholder="Alex Rivera" />
+          <input value={form.name} onChange={update('name')} placeholder="John Doe" />
         </div>
         <div className="field">
           <label>BUSINESS <span style={{ color: 'var(--ink-soft)' }}>(OPTIONAL)</span></label>
-          <input value={form.business} onChange={update('business')} placeholder="Small Concern Productions" />
+          <input value={form.business} onChange={update('business')} placeholder="Skibidi Toilet Productions" />
         </div>
         <div className="field full">
           <label>MAILING ADDRESS <span className="req">*</span></label>
-          <input value={form.address} onChange={update('address')} placeholder="1414 Douglas St, Victoria BC" />
+          <input value={form.address} onChange={update('address')} placeholder="67 Yolo Blvd, Albuquerque, NM" />
         </div>
         <div className="field">
           <label>PHONE <span className="req">*</span></label>
-          <input value={form.phone} onChange={update('phone')} placeholder="250 555 0142" />
+          <input value={form.phone} onChange={update('phone')} placeholder="667 667 6767" />
         </div>
         <div className="field">
           <label>EMAIL <span className="req">*</span></label>
