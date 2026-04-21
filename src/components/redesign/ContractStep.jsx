@@ -78,7 +78,7 @@ export default function ContractStep({
   return (
     <>
       <div className="contract">
-        <h2>Space Hash Rental Agreement</h2>
+        <h2>SPACEHASH LLC Rental Agreement</h2>
         <div className="date-line">DRAWN UP · {dayjs().format('YYYY-MM-DD')} · VICTORIA, BC</div>
 
         <Section n="1" title="THE PARTIES">
@@ -87,7 +87,7 @@ export default function ContractStep({
             by and between:
           </p>
           <div className="parties">
-            <div><strong>Donovan Jenkins @ SPACE HASH LLC</strong> (the "Owner")</div>
+            <div><strong>Donovan Jenkins @ SPACEHASH LLC</strong> (the "Owner")</div>
             <div><span className="parties-key">Address:</span> 5500 Copper Ave NE 87121</div>
             <div className="parties-and">and</div>
             <div>
@@ -137,16 +137,16 @@ export default function ContractStep({
 
         <Section n="3" title="TERM, PICK UP, AND RETURN OF EQUIPMENT">
           <p>
-            SPACE HASH charges by the event/day. All inquiries must be made and scheduled a minimum
+            SPACEHASH charges by the event/day. All inquiries must be made and scheduled a minimum
             of 72 hours before the event. Equipment must be returned by the end of the next
-            business day or when a representative of SPACE HASH is next available.
+            business day or when a representative of SPACEHASH is next available.
           </p>
           <p><strong>Lease period:</strong> {leaseStart} → {leaseEnd}. Equipment must be returned by the end of this date.</p>
           <p>
             If the equipment is not returned by the end of the day on the agreement date listed
             above, or is not communicated properly, an additional full day rental will be
             automatically charged. The renter is responsible for picking up and dropping off the
-            equipment on time and when a representative from SPACE HASH is available. SPACE HASH
+            equipment on time and when a representative from SPACEHASH is available. SPACEHASH
             is not responsible or obligated to drop off or pick up any equipment unless otherwise
             communicated.
           </p>
@@ -165,7 +165,7 @@ export default function ContractStep({
 
         <Section n="5" title="SECURITY DEPOSIT">
           <p>
-            A Security Deposit will be determined by SPACE HASH and communicated separately. If
+            A Security Deposit will be determined by SPACEHASH and communicated separately. If
             required, this is an additional deposit for equipment set up in non-intended use areas
             that may be exposed to excessive dust, dirt, rain, spills, fog machine juice, etc. Any
             additional damage or losses shall be paid by the Renter in a separate payment.
@@ -211,7 +211,7 @@ export default function ContractStep({
 
         <Section n="10" title="DEFAULT / LEGAL RECOURSE">
           <p>
-            In the event of Default or failure to return equipment, SPACE HASH may terminate this
+            In the event of Default or failure to return equipment, SPACEHASH may terminate this
             Agreement and take possession of the Equipment. If repossession, collection agencies,
             or attorney services are required to recover equipment or payments, the Renter will
             pay all associated costs.
@@ -263,7 +263,7 @@ export default function ContractStep({
           </div>
           <div className="sign">
             <div className="name">Donovan Jenkins</div>
-            <div className="label">// LENDER — SPACE HASH</div>
+            <div className="label">// LENDER — SPACEHASH</div>
           </div>
         </div>
       </div>
