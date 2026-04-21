@@ -1,40 +1,50 @@
-import { useState, useEffect } from 'react';
-import { Box, TextField, Button, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
+import { useForm } from '@formspree/react';
 import { parseCSV, parseReservationsCSV, parseUnavailableCSV } from '../utils/csv';
-import RentalCalendar from '../components/RentalCalendar';
-import ContractReviewStep from '../components/ContractReviewStep';
 import equipmentCsvUrl from '../resources/equipment.csv';
 import reservationsCsvUrl from '../resources/reservations.csv';
 import unavailableCsvUrl from '../resources/unavailable.csv';
+import RedesignCalendar from '../components/redesign/RedesignCalendar';
+import GearPanel from '../components/redesign/GearPanel';
+import SelectionsList from '../components/redesign/SelectionsList';
+import ContactStep, { isContactValid } from '../components/redesign/ContactStep';
+import ContractStep from '../components/redesign/ContractStep';
+import ConfirmationStep from '../components/redesign/ConfirmationStep';
+import NavActions from '../components/redesign/NavActions';
 
-function RentalsPage() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+const EMPTY_FORM = {
+  name: '',
+  business: '',
+  address: '',
+  phone: '',
+  email: '',
+  comments: '',
+};
 
+export default function RentalsPage() {
   const [equipment, setEquipment] = useState([]);
   const [reservations, setReservations] = useState({});
   const [unavailableDates, setUnavailableDates] = useState(new Set());
   const [loading, setLoading] = useState(true);
-  const [name, setName] = useState('');
-  const [business, setBusiness] = useState('');
-  const [address, setAddress] = useState('');
-  const [phone, setPhone] = useState('');
-  const [contactInfo, setContactInfo] = useState('');
-  const [dateSelections, setDateSelections] = useState({});
-  const [comments, setComments] = useState('');
+
   const [step, setStep] = useState(0);
+  const [activeDate, setActiveDate] = useState(null);
+  const [dateSelections, setDateSelections] = useState({});
+  const [form, setForm] = useState(EMPTY_FORM);
+
+  const [formState, handleFormspreeSubmit] = useForm('xykbevyk');
 
   useEffect(() => {
     Promise.all([
-      fetch(equipmentCsvUrl).then((res) => res.text()),
-      fetch(reservationsCsvUrl).then((res) => res.text()),
-      fetch(unavailableCsvUrl).then((res) => res.text()),
+      fetch(equipmentCsvUrl).then((r) => r.text()),
+      fetch(reservationsCsvUrl).then((r) => r.text()),
+      fetch(unavailableCsvUrl).then((r) => r.text()),
     ])
-      .then(([equipmentText, reservationsText, unavailableText]) => {
-        setEquipment(parseCSV(equipmentText));
-        setReservations(parseReservationsCSV(reservationsText));
-        setUnavailableDates(parseUnavailableCSV(unavailableText));
+      .then(([eq, rs, un]) => {
+        setEquipment(parseCSV(eq));
+        setReservations(parseReservationsCSV(rs));
+        setUnavailableDates(parseUnavailableCSV(un));
         setLoading(false);
       })
       .catch((err) => {
@@ -46,180 +56,158 @@ function RentalsPage() {
   const isDateUnavailable = (dateToCheck) => {
     if (!dateToCheck || equipment.length === 0) return false;
     const dateStr = dayjs(dateToCheck).format('YYYY-MM-DD');
-
-    // Check if date is in unavailable list
     if (unavailableDates.has(dateStr)) return true;
-
-    // Check if all equipment is fully booked
-    const dayReservations = reservations[dateStr];
-    if (!dayReservations) return false;
-    return equipment.every((item) => (dayReservations[item.name] || 0) >= item.maxQty);
+    const dayRes = reservations[dateStr];
+    if (!dayRes) return false;
+    return equipment.every((item) => (dayRes[item.name] || 0) >= item.maxQty);
   };
 
-  const handleSaveDateSelection = (dateStr, quantities) => {
-    const hasAny = Object.values(quantities).some((qty) => qty > 0);
-    if (hasAny) {
-      setDateSelections((prev) => ({ ...prev, [dateStr]: quantities }));
-    } else {
-      setDateSelections((prev) => {
-        const next = { ...prev };
-        delete next[dateStr];
-        return next;
-      });
+  const handleSelectDay = (ymd) => {
+    setDateSelections((prev) => {
+      const copy = { ...prev };
+      if (activeDate && activeDate !== ymd) {
+        const prevQtys = copy[activeDate];
+        if (prevQtys && !Object.values(prevQtys).some((q) => q > 0)) {
+          delete copy[activeDate];
+        }
+      }
+      if (!copy[ymd]) {
+        copy[ymd] = Object.fromEntries(equipment.map((e) => [e.name, 0]));
+      }
+      return copy;
+    });
+    setActiveDate(ymd);
+  };
+
+  const handleChangeQty = (name, qty) => {
+    if (!activeDate) return;
+    setDateSelections((prev) => {
+      const next = { ...(prev[activeDate] || {}), [name]: qty };
+      const hasAny = Object.values(next).some((v) => v > 0);
+      const copy = { ...prev };
+      if (hasAny) copy[activeDate] = next;
+      else delete copy[activeDate];
+      return copy;
+    });
+  };
+
+  const handleRemoveDate = (ymd) => {
+    setDateSelections((prev) => {
+      const copy = { ...prev };
+      delete copy[ymd];
+      return copy;
+    });
+    if (activeDate === ymd) setActiveDate(null);
+  };
+
+  const totals = useMemo(() => {
+    let days = 0;
+    let subtotal = 0;
+    let items = 0;
+    for (const [, qs] of Object.entries(dateSelections)) {
+      let dayHas = false;
+      for (const [n, q] of Object.entries(qs)) {
+        if (q > 0) {
+          dayHas = true;
+          items += q;
+          const eq = equipment.find((e) => e.name === n);
+          if (eq) subtotal += q * eq.cost;
+        }
+      }
+      if (dayHas) days++;
     }
-  };
+    return { days, subtotal, items };
+  }, [dateSelections, equipment]);
 
-  const hasDateSelected = Object.keys(dateSelections).length > 0;
-  const isFormValid = name.trim() && address.trim() && phone.trim();
+  const hasAnyGear = Object.values(dateSelections).some((qs) =>
+    Object.values(qs).some((q) => q > 0),
+  );
+
+  const resetAll = () => {
+    setDateSelections({});
+    setForm(EMPTY_FORM);
+    setActiveDate(null);
+    setStep(0);
+  };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <CircularProgress />
-      </Box>
+      <div className="rentals">
+        <div className="rentals-loading">loading gear data</div>
+      </div>
     );
   }
 
-  return (
-    <Box sx={{
-      p: { xs: 1.5, sm: 2 },
-      maxWidth: 900,
-      mx: 'auto',
-      width: '100%',
-      height: '100%',
-      boxSizing: 'border-box',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-    }}>
+  const effectiveStep = formState.succeeded ? 3 : step;
 
-      {/* Step 0: Calendar */}
-      {step === 0 && (
+  return (
+    <div className="rentals">
+      {effectiveStep === 0 && (
         <>
-          <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', mb: 2 }}>
-            <RentalCalendar
+          <div className="rentals-grid">
+            <RedesignCalendar
               equipment={equipment}
-              dateSelections={dateSelections}
               reservations={reservations}
+              dateSelections={dateSelections}
+              activeDate={activeDate}
               isDateUnavailable={isDateUnavailable}
-              onSaveDateSelection={handleSaveDateSelection}
+              onSelectDay={handleSelectDay}
             />
-          </Box>
-          <Box sx={{ flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
-            <Button
-              variant="contained"
-              size={isMobile ? 'medium' : 'large'}
-              disabled={!hasDateSelected}
+            <div className="rentals-right">
+              <GearPanel
+                equipment={equipment}
+                activeDate={activeDate}
+                quantitiesForDate={activeDate ? dateSelections[activeDate] : null}
+                onChangeQty={handleChangeQty}
+                reservations={reservations}
+              />
+              <SelectionsList selections={dateSelections} onRemove={handleRemoveDate} />
+            </div>
+          </div>
+
+          <div className="totals-summary standalone">
+            {totals.days} DAYS · {totals.items} ITEMS · SUBTOTAL{' '}
+            <span className="sub">${totals.subtotal}</span>
+          </div>
+
+          <NavActions>
+            <button
+              type="button"
+              className="btn primary"
+              disabled={!hasAnyGear}
               onClick={() => setStep(1)}
             >
-              Next
-            </Button>
-          </Box>
+              ≫ NEXT / CONTACT
+            </button>
+          </NavActions>
         </>
       )}
 
-      {/* Step 1: Contact fields */}
-      {step === 1 && (
-        <>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 2, flexShrink: 0 }}>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField
-                label="Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                fullWidth
-                size="small"
-              />
-              <TextField
-                label="Business (optional)"
-                value={business}
-                onChange={(e) => setBusiness(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Box>
-            <TextField
-              label="Mailing Address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              fullWidth
-              size="small"
-            />
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField
-                label="Phone Number"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                fullWidth
-                size="small"
-              />
-              <TextField
-                label="Additional Contact Info (optional)"
-                value={contactInfo}
-                onChange={(e) => setContactInfo(e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Box>
-            <TextField
-              label="Comments"
-              value={comments}
-              onChange={(e) => setComments(e.target.value)}
-              multiline
-              rows={2}
-              fullWidth
-              size="small"
-            />
-          </Box>
-
-          <Box sx={{ flexShrink: 0, display: 'flex', gap: 1, justifyContent: 'center' }}>
-            <Button
-              variant="outlined"
-              size={isMobile ? 'medium' : 'large'}
-              onClick={() => setStep(0)}
-            >
-              Back
-            </Button>
-            <Button
-              variant="contained"
-              size={isMobile ? 'medium' : 'large'}
-              disabled={!isFormValid}
-              onClick={() => setStep(2)}
-              fullWidth={isMobile}
-            >
-              Review Contract
-            </Button>
-          </Box>
-        </>
-      )}
-
-      {/* Step 2: Contract review + Formspree submit */}
-      {step === 2 && (
-        <ContractReviewStep
-          name={name}
-          business={business}
-          address={address}
-          phone={phone}
-          contactInfo={contactInfo}
-          comments={comments}
-          dateSelections={dateSelections}
-          equipment={equipment}
-          onBack={() => setStep(1)}
-          onGoHome={() => {
-            setName('');
-            setBusiness('');
-            setAddress('');
-            setPhone('');
-            setContactInfo('');
-            setComments('');
-            setDateSelections({});
-            setStep(0);
+      {effectiveStep === 1 && (
+        <ContactStep
+          form={form}
+          setForm={setForm}
+          onBack={() => setStep(0)}
+          onNext={() => {
+            if (isContactValid(form)) setStep(2);
           }}
         />
       )}
 
-    </Box>
+      {effectiveStep === 2 && (
+        <ContractStep
+          form={form}
+          dateSelections={dateSelections}
+          equipment={equipment}
+          formState={formState}
+          handleFormspreeSubmit={handleFormspreeSubmit}
+          onBack={() => setStep(1)}
+        />
+      )}
+
+      {effectiveStep === 3 && (
+        <ConfirmationStep form={form} totals={totals} onReset={resetAll} />
+      )}
+    </div>
   );
 }
-
-export default RentalsPage;
