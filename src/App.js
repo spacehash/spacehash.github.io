@@ -1,44 +1,19 @@
-import { CssBaseline, Box } from '@mui/material';
+import { CssBaseline } from '@mui/material';
 import { Outlet } from '@tanstack/react-router';
-import Footer from './components/Footer';
-import ThemeToggle from './components/ThemeToggle';
-import './styles/CRTEffects.css';
+import TopBar from './components/redesign/TopBar';
+import Nav from './components/redesign/Nav';
 
 function App() {
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100dvh',
-        // Fallback for browsers that don't support dvh
-        '@supports not (height: 100dvh)': {
-          height: '100vh',
-        },
-        // iOS Safari full-height fix for older versions without dvh
-        '@supports (-webkit-touch-callout: none) and (not (height: 100dvh))': {
-          height: '-webkit-fill-available',
-        },
-      }}
-    >
-      <div className="crt-overlay" />
-      <div className="crt-glare" />
+    <div className="app">
       <CssBaseline />
-      <ThemeToggle />
-      <Box
-        sx={{
-          flex: 1,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          overflow: 'auto',
-          minHeight: 0,
-        }}
-      >
+      <TopBar />
+      <div className="view">
         <Outlet />
-      </Box>
-      <Footer />
-    </Box>
+      </div>
+      <div id="nav-actions" className="nav-actions" />
+      <Nav />
+    </div>
   );
 }
 
