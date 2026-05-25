@@ -8,9 +8,9 @@ export default function ConfirmationStep({ form, totals, onReset }) {
 
   return (
     <div className="confirm">
-      <h1>Signal <em>received</em></h1>
+      <h1>Booking <em>received</em></h1>
       <p>
-        Booking logged. Confirmation email within 24h — usually sooner. Pickup details and
+        Booking logged. Confirmation text within 24h — usually sooner. Pickup details and
         load-in notes follow.
       </p>
       <div className="ticket">
@@ -18,7 +18,7 @@ export default function ConfirmationStep({ form, totals, onReset }) {
         <div><span className="lbl">// OPR</span>{form.name || '—'}</div>
         <div><span className="lbl">// DATES</span>{totals.days}</div>
         <div><span className="lbl">// ITEMS</span>{totals.items}</div>
-        <div><span className="lbl">// SUB</span>${totals.subtotal}.00 CAD</div>
+        <div><span className="lbl">// SUB</span>${totals.subtotal}.00 USD</div>
       </div>
       <div>
         <button type="button" className="btn primary" onClick={onReset}>
