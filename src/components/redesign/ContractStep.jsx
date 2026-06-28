@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import dayjs from 'dayjs';
 import NavActions from './NavActions';
 
@@ -20,6 +20,8 @@ export default function ContractStep({
   onBack,
 }) {
   const [signature, setSignature] = useState('');
+  const [signPrompt, setSignPrompt] = useState(false);
+  const signInputRef = useRef(null);
 
   const signatureMatches =
     signature.trim() !== '' &&
@@ -72,6 +74,12 @@ export default function ContractStep({
   ].join('\n');
 
   const submit = () => {
+    if (!signatureMatches) {
+      setSignPrompt(true);
+      signInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      signInputRef.current?.focus({ preventScroll: true });
+      return;
+    }
     document.getElementById('formspree-contract').requestSubmit();
   };
 
@@ -249,8 +257,9 @@ export default function ContractStep({
         <div className="sign-grid">
           <div className="sign">
             <input
+              ref={signInputRef}
               type="text"
-              className="sign-input"
+              className={`sign-input${signPrompt && !signatureMatches ? ' needs-sign' : ''}`}
               placeholder="TYPE YOUR FULL NAME"
               value={signature}
               onChange={(e) => setSignature(e.target.value)}
@@ -275,6 +284,10 @@ export default function ContractStep({
       <p className="contract-agreement-statement">
         By signing and submitting this booking, I have read and agree to the terms of this Equipment Rental Agreement.
       </p>
+
+      {signPrompt && !signatureMatches && (
+        <p className="sign-alert">✍ Please sign above — type your full name in the signature field to submit.</p>
+      )}
 
       <form
         onSubmit={handleFormspreeSubmit}
@@ -305,8 +318,8 @@ export default function ContractStep({
         </button>
         <button
           type="button"
-          className="btn primary"
-          disabled={!signatureMatches || formState.submitting}
+          className={`btn primary${!signatureMatches ? ' looks-disabled' : ''}`}
+          disabled={formState.submitting}
           onClick={submit}
         >
           {formState.submitting ? 'TRANSMITTING…' : '≫ TRANSMIT BOOKING'}

@@ -8,6 +8,7 @@
   --f-display: 'JetBrains Mono', ui-monospace, monospace;
   --f-ui: 'JetBrains Mono', ui-monospace, monospace;
   --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --alert-red: oklch(0.62 0.24 25);
 }
 
 /* ---------- DARK mode palettes ---------- */

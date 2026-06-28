@@ -1244,6 +1244,23 @@ body::after {
   text-transform: uppercase;
   margin-top: 3px;
 }
+.contract .sign .sign-input.needs-sign {
+  color: var(--alert-red);
+  border-bottom: 2px solid var(--alert-red);
+  animation: signNudge 0.4s ease;
+}
+.contract .sign .sign-input.needs-sign::placeholder { color: var(--alert-red); opacity: 0.85; }
+@keyframes signNudge { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);} 75%{transform:translateX(4px);} }
+.btn.primary.looks-disabled { opacity: 0.45; }
+.sign-alert {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--alert-red);
+  text-align: center;
+  margin: 8px 0 0;
+}
 
 .contract .parties {
   font-family: var(--f-mono);
