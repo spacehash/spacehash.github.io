@@ -6,7 +6,7 @@ export function parseCSV(text) {
       id: index + 1,
       name: values[0],
       description: values[1],
-      maxQty: parseInt(values[2]) || 1,
+      maxQty: Number.isNaN(parseInt(values[2])) ? 1 : parseInt(values[2]),
       cost: parseFloat(values[3]) || 0,
       value: parseFloat(values[4]) || 0,
     };
