@@ -15,7 +15,7 @@ import NavActions from '../components/redesign/NavActions';
 
 // Temporarily disable online booking (Formspree delivery is broken).
 // Set to false to restore the booking flow.
-const RENTALS_DISABLED = true;
+const RENTALS_DISABLED = false;
 
 const EMPTY_FORM = {
   name: '',
