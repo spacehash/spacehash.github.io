@@ -13,6 +13,10 @@ import ContractStep from '../components/redesign/ContractStep';
 import ConfirmationStep from '../components/redesign/ConfirmationStep';
 import NavActions from '../components/redesign/NavActions';
 
+// Temporarily disable online booking (Formspree delivery is broken).
+// Set to false to restore the booking flow.
+const RENTALS_DISABLED = true;
+
 const EMPTY_FORM = {
   name: '',
   business: '',
@@ -129,6 +133,22 @@ export default function RentalsPage() {
     setActiveDate(null);
     setStep(0);
   };
+
+  if (RENTALS_DISABLED) {
+    return (
+      <div className="rentals">
+        <div className="rentals-loading" style={{ textAlign: 'center', lineHeight: 1.8 }}>
+          <span>
+          rentals temporarily down — email{' '}
+          <a href="mailto:spacehashes@gmail.com" style={{ color: 'var(--riso-pink)' }}>
+            spacehashes@gmail.com
+          </a>{' '}
+          with requested gear and dates
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
